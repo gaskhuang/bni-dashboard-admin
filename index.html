@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>華One Palms - 幹部管理儀表板</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>載入團隊資料中...</p>
+    </div>
+  </div>
+
+  <!-- Main Dashboard -->
+  <div id="admin-dashboard" class="admin-dashboard hidden">
+
+    <!-- Header -->
+    <header class="admin-header">
+      <h1>華One Palms 幹部管理儀表板</h1>
+      <a href="https://gaskhuang.github.io/bni-dashboard/" class="link-member" target="_blank">會員查詢 →</a>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="overview">團隊概覽</button>
+      <button class="tab-btn" data-tab="table">會員績效</button>
+      <button class="tab-btn" data-tab="alerts">需關注會員</button>
+      <button class="tab-btn" data-tab="analytics">數據分析</button>
+      <button class="tab-btn" data-tab="meeting">例會準備</button>
+    </nav>
+
+    <!-- Tab: Overview -->
+    <section id="tab-overview" class="tab-content active">
+      <div class="kpi-row" id="kpi-row"></div>
+      <div class="card">
+        <h3>燈號分布</h3>
+        <div id="light-distribution"></div>
+        <div class="light-legend" id="light-legend"></div>
+      </div>
+    </section>
+
+    <!-- Tab: Member Table -->
+    <section id="tab-table" class="tab-content">
+      <div class="table-toolbar">
+        <div class="filter-group" id="filter-group">
+          <button class="filter-btn active" data-filter="all">全部</button>
+          <button class="filter-btn filter-green" data-filter="green">綠燈</button>
+          <button class="filter-btn filter-yellow" data-filter="yellow">黃燈</button>
+          <button class="filter-btn filter-red" data-filter="red">紅燈</button>
+          <button class="filter-btn filter-black" data-filter="black">黑燈</button>
+        </div>
+        <input type="text" id="search-input" class="search-input" placeholder="搜尋姓名...">
+      </div>
+      <div class="table-wrap">
+        <table class="member-table" id="member-table">
+          <thead>
+            <tr>
+              <th data-sort="id">編號</th>
+              <th data-sort="name">姓名</th>
+              <th data-sort="total" class="sort-active sort-desc">總分</th>
+              <th>燈號</th>
+              <th data-sort="attendance">出席<span class="th-max">/20</span></th>
+              <th data-sort="oneOnOne">一對一<span class="th-max">/15</span></th>
+              <th data-sort="training">教育<span class="th-max">/15</span></th>
+              <th data-sort="referral">引薦<span class="th-max">/20</span></th>
+              <th data-sort="guest">來賓<span class="th-max">/15</span></th>
+              <th data-sort="value">金額<span class="th-max">/15</span></th>
+              <th data-sort="trend">趨勢</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tab: Alerts -->
+    <section id="tab-alerts" class="tab-content">
+      <div class="alert-section">
+        <h3 class="alert-title alert-title-red">績效下滑警示</h3>
+        <p class="alert-desc">最近 2 個月總分下降 ≥ 10 分的會員</p>
+        <div id="alert-declining" class="alert-list"></div>
+      </div>
+      <div class="alert-section">
+        <h3 class="alert-title alert-title-black">持續低分會員</h3>
+        <p class="alert-desc">連續 3 個月以上總分低於 50 分</p>
+        <div id="alert-low" class="alert-list"></div>
+      </div>
+      <div class="alert-section">
+        <h3 class="alert-title alert-title-green">進步會員表揚</h3>
+        <p class="alert-desc">最近 2 個月總分提升 ≥ 10 分的會員</p>
+        <div id="alert-improving" class="alert-list"></div>
+      </div>
+    </section>
+
+    <!-- Tab: Analytics -->
+    <section id="tab-analytics" class="tab-content">
+      <div class="chart-grid">
+        <div class="card">
+          <h3>團隊平均分趨勢</h3>
+          <div class="chart-container"><canvas id="chart-team-avg"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>燈號分布趨勢</h3>
+          <div class="chart-container"><canvas id="chart-light-trend"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>類別弱點分析</h3>
+          <div class="chart-container"><canvas id="chart-weakness"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>分數分布</h3>
+          <div class="chart-container"><canvas id="chart-distribution"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab: Meeting Prep -->
+    <section id="tab-meeting" class="tab-content">
+      <div class="card meeting-card">
+        <h3>表揚名單</h3>
+        <div id="meeting-praise"></div>
+      </div>
+      <div class="card meeting-card">
+        <h3>關懷名單</h3>
+        <div id="meeting-care"></div>
+      </div>
+      <div class="card meeting-card">
+        <h3>本月重點</h3>
+        <div id="meeting-focus"></div>
+      </div>
+      <div class="card meeting-card">
+        <h3>團隊目標</h3>
+        <div id="meeting-goal"></div>
+      </div>
+    </section>
+
+    <!-- Member Detail Modal -->
+    <div id="member-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <button class="modal-close" id="modal-close">&times;</button>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/data.js?v=2"></script>
+  <script src="js/admin.js?v=2"></script>
+</body>
+</html>

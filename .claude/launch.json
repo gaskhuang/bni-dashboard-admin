@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bni-admin-server",
+      "runtimeExecutable": "/opt/homebrew/bin/python3",
+      "runtimeArgs": ["-m", "http.server", "8009", "-d", "/Users/gask/Documents/claude-code/bni-dashboard-admin"],
+      "port": 8009
+    }
+  ]
+}
