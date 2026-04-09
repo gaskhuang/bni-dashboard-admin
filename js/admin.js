@@ -469,24 +469,25 @@
       }
     });
 
-    // 4c: Category Weakness
+    // 4c: Category Weakness - 各類別團隊平均得分率
     const catMaxMap = { '出席': 20, '一對一': 15, '教育': 15, '引薦': 20, '來賓': 15, '金額': 15 };
     const catNames = Object.keys(catMaxMap);
-    const notFullPct = catNames.map(cat => {
+    const catScoreRate = catNames.map(cat => {
       const max = catMaxMap[cat];
       const key = cat === '出席' ? 'attendance' : cat === '一對一' ? 'oneOnOne' : cat === '教育' ? 'training' : cat === '引薦' ? 'referral' : cat === '來賓' ? 'guest' : 'value';
-      const notFull = membersData.filter(m => m.scores[key] < max).length;
-      return { cat, pct: Math.round(notFull / membersData.length * 100) };
-    }).sort((a, b) => b.pct - a.pct);
+      const avgScore = membersData.reduce((s, m) => s + m.scores[key], 0) / membersData.length;
+      const rate = Math.round(avgScore / max * 100);
+      return { cat, rate, avgScore: avgScore.toFixed(1), max };
+    }).sort((a, b) => a.rate - b.rate); // 最弱排前面
 
     charts.weakness = new Chart($('#chart-weakness'), {
       type: 'bar',
       data: {
-        labels: notFullPct.map(d => d.cat),
+        labels: catScoreRate.map(d => `${d.cat}（${d.avgScore}/${d.max}）`),
         datasets: [{
-          label: '未達滿分比例 %',
-          data: notFullPct.map(d => d.pct),
-          backgroundColor: notFullPct.map(d => d.pct >= 70 ? '#ef4444' : d.pct >= 40 ? '#eab308' : '#22c55e'),
+          label: '平均得分率 %',
+          data: catScoreRate.map(d => d.rate),
+          backgroundColor: catScoreRate.map(d => d.rate >= 70 ? '#22c55e' : d.rate >= 40 ? '#eab308' : '#ef4444'),
         }]
       },
       options: {
@@ -586,15 +587,15 @@
 
     // Focus - weakest category
     const focusEl = $('#meeting-focus');
-    const catMaxMap = { '出席': 20, '一對一': 15, '教育': 15, '引薦': 20, '來賓': 15, '金額': 15 };
-    const catNames = Object.keys(catMaxMap);
-    const catStats = catNames.map(cat => {
+    const catMaxMap2 = { '出席': 20, '一對一': 15, '教育': 15, '引薦': 20, '來賓': 15, '金額': 15 };
+    const catNames2 = Object.keys(catMaxMap2);
+    const catStats = catNames2.map(cat => {
       const key = cat === '出席' ? 'attendance' : cat === '一對一' ? 'oneOnOne' : cat === '教育' ? 'training' : cat === '引薦' ? 'referral' : cat === '來賓' ? 'guest' : 'value';
-      const max = catMaxMap[cat];
-      const notFull = membersData.filter(m => m.scores[key] < max).length;
+      const max = catMaxMap2[cat];
       const avgScore = membersData.reduce((s, m) => s + m.scores[key], 0) / membersData.length;
-      return { cat, notFull, pct: Math.round(notFull / membersData.length * 100), avgScore: avgScore.toFixed(1), max };
-    }).sort((a, b) => b.pct - a.pct);
+      const rate = Math.round(avgScore / max * 100);
+      return { cat, rate, avgScore: avgScore.toFixed(1), max };
+    }).sort((a, b) => a.rate - b.rate); // 最弱排前面
 
     const weakest = catStats[0];
     const actionMap = {
@@ -607,7 +608,7 @@
     };
 
     focusEl.innerHTML = `<div class="meeting-highlight">
-      團隊最弱環節：<strong>${weakest.cat}</strong>（${weakest.pct}% 會員未達滿分，平均 ${weakest.avgScore} / ${weakest.max}）<br><br>
+      團隊最弱環節：<strong>${weakest.cat}</strong>（平均得分率 ${weakest.rate}%，平均 ${weakest.avgScore} / ${weakest.max}）<br><br>
       建議行動：<strong>${actionMap[weakest.cat]}</strong>
     </div>`;
 
