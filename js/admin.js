@@ -195,7 +195,7 @@
         <div class="kpi-sub">總分低於 50 分</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">月度變化</div>
+        <div class="kpi-label">月平均分變化</div>
         <div class="kpi-value ${deltaClass}">${deltaSign}${monthDeltaPct}%</div>
         <div class="kpi-sub">${deltaWord} vs 上月平均</div>
       </div>
@@ -398,14 +398,15 @@
 
     const labels = monthAggregates.map(m => m.display);
 
-    // 4a: Team Average Trend
+    // 4a: Team Average Trend — 節點上顯示數字
+    const avgData = monthAggregates.map(m => parseFloat(m.avg.toFixed(1)));
     charts.avg = new Chart($('#chart-team-avg'), {
       type: 'line',
       data: {
         labels,
         datasets: [{
           label: '團隊平均分',
-          data: monthAggregates.map(m => m.avg.toFixed(1)),
+          data: avgData,
           borderColor: '#3b82f6',
           backgroundColor: 'rgba(59,130,246,0.1)',
           fill: true,
@@ -417,8 +418,8 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          annotation: false,
           legend: { display: false },
+          datalabels: false,
         },
         scales: {
           y: {
@@ -446,10 +447,25 @@
           ctx.fillText('綠燈 70', chart.chartArea.right - 50, y - 6);
           ctx.restore();
         }
+      }, {
+        id: 'avgLabels',
+        afterDatasetsDraw(chart) {
+          const ctx = chart.ctx;
+          const dataset = chart.data.datasets[0];
+          const meta = chart.getDatasetMeta(0);
+          ctx.save();
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillStyle = '#3b82f6';
+          ctx.textAlign = 'center';
+          meta.data.forEach((point, i) => {
+            ctx.fillText(dataset.data[i], point.x, point.y - 10);
+          });
+          ctx.restore();
+        }
       }]
     });
 
-    // 4b: Light Distribution Trend
+    // 4b: Light Distribution — 燈號總分統計，每段顯示人數
     charts.lightTrend = new Chart($('#chart-light-trend'), {
       type: 'bar',
       data: {
@@ -465,8 +481,31 @@
         responsive: true,
         maintainAspectRatio: false,
         scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
-        plugins: { legend: { position: 'bottom' } },
-      }
+        plugins: {
+          legend: { position: 'bottom' },
+        },
+      },
+      plugins: [{
+        id: 'stackedLabels',
+        afterDatasetsDraw(chart) {
+          const ctx = chart.ctx;
+          ctx.save();
+          ctx.font = 'bold 11px sans-serif';
+          ctx.textAlign = 'center';
+          chart.data.datasets.forEach((ds, dsIdx) => {
+            const meta = chart.getDatasetMeta(dsIdx);
+            ctx.fillStyle = dsIdx === 3 ? '#fff' : '#000';
+            meta.data.forEach((bar, i) => {
+              const val = ds.data[i];
+              if (val > 0) {
+                const y = (bar.y + bar.base) / 2;
+                ctx.fillText(val, bar.x, y + 4);
+              }
+            });
+          });
+          ctx.restore();
+        }
+      }]
     });
 
     // 4c: Category Weakness - 各類別團隊平均得分率
@@ -496,7 +535,25 @@
         indexAxis: 'y',
         scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
         plugins: { legend: { display: false } },
-      }
+      },
+      plugins: [{
+        id: 'rateLabels',
+        afterDatasetsDraw(chart) {
+          const ctx = chart.ctx;
+          const meta = chart.getDatasetMeta(0);
+          const ds = chart.data.datasets[0];
+          ctx.save();
+          ctx.font = 'bold 12px sans-serif';
+          ctx.textBaseline = 'middle';
+          meta.data.forEach((bar, i) => {
+            const val = ds.data[i];
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'left';
+            ctx.fillText(val + '%', bar.x + 6, bar.y);
+          });
+          ctx.restore();
+        }
+      }]
     });
 
     // 4d: Score Distribution
