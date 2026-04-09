@@ -163,11 +163,15 @@
     const greenRate = totals.length ? Math.round(greenCount / totals.length * 100) : 0;
     const atRisk = membersData.filter(m => m.scores.total < 50).length;
 
-    // Month-over-month
+    // Month-over-month percentage change
     const lastTwo = monthAggregates.slice(-2);
-    const monthDelta = lastTwo.length === 2 ? (lastTwo[1].avg - lastTwo[0].avg).toFixed(1) : 0;
-    const deltaSign = monthDelta > 0 ? '+' : '';
-    const deltaClass = monthDelta > 0 ? 'trend-up' : monthDelta < 0 ? 'trend-down' : 'trend-stable';
+    let monthDeltaPct = 0;
+    if (lastTwo.length === 2 && lastTwo[0].avg > 0) {
+      monthDeltaPct = ((lastTwo[1].avg - lastTwo[0].avg) / lastTwo[0].avg * 100).toFixed(1);
+    }
+    const deltaSign = monthDeltaPct > 0 ? '+' : '';
+    const deltaClass = monthDeltaPct > 0 ? 'trend-up' : monthDeltaPct < 0 ? 'trend-down' : 'trend-stable';
+    const deltaWord = monthDeltaPct > 0 ? '提升' : monthDeltaPct < 0 ? '降低' : '持平';
 
     // Attendance rate (latest month)
     const latestAgg = monthAggregates[monthAggregates.length - 1];
@@ -192,8 +196,8 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-label">月度變化</div>
-        <div class="kpi-value ${deltaClass}">${deltaSign}${monthDelta}</div>
-        <div class="kpi-sub">vs 上月平均</div>
+        <div class="kpi-value ${deltaClass}">${deltaSign}${monthDeltaPct}%</div>
+        <div class="kpi-sub">${deltaWord} vs 上月平均</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">全勤率</div>
@@ -451,10 +455,10 @@
       data: {
         labels,
         datasets: [
-          { label: '綠燈', data: monthAggregates.map(m => m.green), backgroundColor: 'var(--green)' },
-          { label: '黃燈', data: monthAggregates.map(m => m.yellow), backgroundColor: 'var(--yellow)' },
-          { label: '紅燈', data: monthAggregates.map(m => m.red), backgroundColor: 'var(--red)' },
-          { label: '黑燈', data: monthAggregates.map(m => m.black), backgroundColor: 'var(--black-light)' },
+          { label: '綠燈', data: monthAggregates.map(m => m.green), backgroundColor: '#22c55e' },
+          { label: '黃燈', data: monthAggregates.map(m => m.yellow), backgroundColor: '#eab308' },
+          { label: '紅燈', data: monthAggregates.map(m => m.red), backgroundColor: '#ef4444' },
+          { label: '黑燈', data: monthAggregates.map(m => m.black), backgroundColor: '#374151' },
         ]
       },
       options: {
@@ -482,7 +486,7 @@
         datasets: [{
           label: '未達滿分比例 %',
           data: notFullPct.map(d => d.pct),
-          backgroundColor: notFullPct.map(d => d.pct >= 70 ? 'var(--red)' : d.pct >= 40 ? 'var(--yellow)' : 'var(--green)'),
+          backgroundColor: notFullPct.map(d => d.pct >= 70 ? '#ef4444' : d.pct >= 40 ? '#eab308' : '#22c55e'),
         }]
       },
       options: {
@@ -511,10 +515,10 @@
           label: '人數',
           data: buckets,
           backgroundColor: bucketLabels.map((_, i) => {
-            if (i >= 7) return 'var(--green)';
-            if (i >= 5) return 'var(--yellow)';
-            if (i >= 3) return 'var(--red)';
-            return 'var(--black-light)';
+            if (i >= 7) return '#22c55e';
+            if (i >= 5) return '#eab308';
+            if (i >= 3) return '#ef4444';
+            return '#374151';
           }),
         }]
       },
