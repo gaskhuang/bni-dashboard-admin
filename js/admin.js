@@ -30,7 +30,8 @@
     const allMonths = [...allMonthsSet].sort();
     const recentMonths = allMonths.slice(-6);
 
-    // Build per-member data
+    // Build per-member data — only include members with data in the latest month
+    const latestMonth = allMonths[allMonths.length - 1];
     const membersData = [];
     for (const m of memberList) {
       const recs = memberRecords[m.id];
@@ -41,6 +42,9 @@
       if (recent.length === 0) continue;
 
       const latest = recent[recent.length - 1];
+
+      // Skip members who don't have data in the latest month
+      if (latest.month.sort !== latestMonth) continue;
       const prev = recent.length >= 2 ? recent[recent.length - 2] : null;
       const twoMonthsAgo = recent.length >= 3 ? recent[recent.length - 3] : null;
 
